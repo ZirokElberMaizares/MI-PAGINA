@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <title>Prototipo Seguimiento Estudiantil</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Chart.js para el gráfico de evolución -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+        body {
+            margin: 0;
+            background: #f4f6fb;
+            color: #1f2933;
+        }
+        header {
+            background: #111827;
+            color: #f9fafb;
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header h1 {
+            font-size: 1.1rem;
+            margin: 0;
+        }
+        header span {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        main {
+            max-width: 1100px;
+            margin: 1.5rem auto;
+            padding: 0 1rem 2rem;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+            margin-bottom: 1rem;
+        }
+        h2 {
+            margin-top: 0;
+            font-size: 1.2rem;
+        }
+        h3 {
+            margin-top: 1rem;
+            font-size: 1rem;
+        }
+        label {
+            font-size: 0.85rem;
+            display: block;
+            margin-bottom: 0.25rem;
+            color: #4b5563;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 0.45rem 0.55rem;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 999px;
+            padding: 0.45rem 1.1rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        button.secondary {
+            background: #e5e7eb;
+            color: #111827;
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .row {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .col-2 {
+            flex: 1 1 250px;
+        }
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            background: #e5e7eb;
+            color: #111827;
+            padding: 0.4rem 0.9rem;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border: none;
+        }
+        .tab-btn.active {
+            background: #2563eb;
+            color: white;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+        }
+        th, td {
+            border-bottom: 1px solid #e5e7eb;
+            padding: 0.4rem 0.3rem;
+            text-align: left;
+        }
+        th {
+            background: #f3f4f6;
+        }
+        .badge {
+            display: inline-block;
+            border-radius: 999px;
+            padding: 0.1rem 0.6rem;
+            font-size: 0.75rem;
+        }
+        .badge-docente {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+        .badge-estudiante {
+            background: #dcfce7;
+            color: #15803d;
+        }
+        .pill {
+            display: inline-block;
+            padding: 0.15rem 0.6rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            background: #eef2ff;
+            color: #3730a3;
+        }
+        .muted {
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+        .login-layout {
+            max-width: 420px;
+            margin: 3rem auto;
+        }
+        .hidden {
+            display: none !important;
+        }
+        @media (max-width: 640px) {
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Seguimiento Estudiantil</h1>
+    <span id="userInfoHeader"></span>
+</header>
+
+<main>
+    <!-- LOGIN -->
+    <section id="loginSection" class="card login-layout">
+        <h2>Iniciar sesión</h2>
+        <p class="muted" style="margin-bottom:0.75rem;">
+            Prototipo sin backend: selecciona el tipo de usuario y un identificador.
+        </p>
+        <label for="roleSelect">Tipo de usuario</label>
+        <select id="roleSelect">
+            <option value="docente">Docente</option>
+            <option value="estudiante">Estudiante</option>
+        </select>
+
+        <div id="docLoginFields">
+            <label for="docenteIdInput">ID de docente (ejemplo: <strong>doc1</strong>)</label>
+            <input id="docenteIdInput" type="text" placeholder="doc1" value="doc1" />
+        </div>
+
+        <div id="estLoginFields" class="hidden">
+            <label for="estudianteIdInput">ID de estudiante (ejemplo: <strong>stu1</strong>)</label>
+            <input id="estudianteIdInput" type="text" placeholder="stu1" />
+            <p class="muted">
+                Puedes crear estudiantes desde el panel de docente y usar su ID para ingresar aquí.
+            </p>
+        </div>
+
+        <button id="loginButton" style="margin-top:0.5rem;">Entrar</button>
+    </section>
+
+    <!-- DASHBOARD DOCENTE -->
+    <section id="docenteDashboard" class="hidden">
+        <div class="card">
+            <h2>Panel Docente</h2>
+            <p class="muted">
+                Administra estudiantes, define criterios y registra evaluaciones.
+            </p>
+
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="tabEstudiantes">Estudiantes</button>
+                <button class="tab-btn" data-tab="tabClases">Clases y Criterios</button>
+                <button class="tab-btn" data-tab="tabEvaluaciones">Evaluaciones</button>
+                <button class="tab-btn" data-tab="tabVistaEstudiante">Vista rápida de estudiante</button>
+            </div>
+        </div>
+
+        <!-- TAB ESTUDIANTES -->
+        <section id="tabEstudiantes" class="card">
+            <h3>Gestión de estudiantes</h3>
+            <div class="row">
+                <div class="col-2">
+                    <h4>Nuevo estudiante</h4>
+                    <label>Nombre</label>
+                    <input id="newStudentName" type="text" placeholder="Ej: Ana Pérez" />
+                    <label>ID (único)</label>
+                    <input id="newStudentId" type="text" placeholder="Ej: stu1" />
+                    <label>Clase</label>
+                    <input id="newStudentClass" type="text" placeholder="Ej: 2° 3°" />
+                    <button id="addStudentBtn">Agregar estudiante</button>
+                </div>
+                <div class="col-2">
+                    <h4>Listado de estudiantes</h4>
+                    <table id="studentsTable">
+                        <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>ID</th>
+                            <th>Clase</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <!-- Rellenado por JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB CLASES Y CRITERIOS -->
+        <section id="tabClases" class="card hidden">
+            <h3>Clases y criterios de evaluación</h3>
+            <div class="row">
+                <div class="col-2">
+                    <h4>Definir clase</h4>
+                    <label>Nombre de la clase</label>
+                    <input id="classNameInput" type="text" placeholder="Ej: 2° 3°" />
+                    <button id="addClassBtn">Agregar/Seleccionar clase</button>
+                    <p class="muted" id="selectedClassLabel"></p>
+                </div>
+
+                <div class="col-2">
+                    <h4>Nuevo criterio para esta clase</h4>
+                    <label>Clase actual</label>
+                    <select id="classSelectCriteria"></select>
+
+                    <!-- NUEVO: PARADIGMA -->
+                    <label>Paradigma</label>
+                    <select id="criterionParadigmInput">
+                        <option value="">Seleccione paradigma</option>
+                        <option value="Formativo/procesual">Formativo/procesual</option>
+                        <option value="Basado en capacidades">Basado en capacidades</option>
+                        <option value="Constructivista">Constructivista</option>
+                        <option value="Cognitivista">Cognitivista</option>
+                        <option value="Humanista">Humanista</option>
+                        <option value="Socio-crítico">Socio-crítico</option>
+                        <option value="Pragmático">Pragmático</option>
+                        <option value="Aprendizaje activo">Aprendizaje activo</option>
+                    </select>
+
+                    <label>Nombre del criterio</label>
+                    <input id="criterionNameInput" type="text" placeholder="Ej: Participación" />
+
+                    <label>Tipo de evaluación</label>
+                    <select id="criterionTypeInput">
+                        <option value="numeric">Numérica (0-10)</option>
+                        <option value="qualitative">Cualitativa (texto)</option>
+                    </select>
+
+                    <label>Escala cualitativa (opcional, separada por comas)</label>
+                    <input id="criterionScaleInput" type="text" placeholder="Ej: Regular,Bueno,Excelente" />
+
+                    <button id="addCriterionBtn">Agregar criterio</button>
+                </div>
+            </div>
+
+            <h4 style="margin-top:1rem;">Criterios definidos por clase</h4>
+            <table id="criteriaTable">
+                <thead>
+                <tr>
+                    <th>Clase</th>
+                    <th>Criterio</th>
+                    <th>Paradigma</th>
+                    <th>Tipo</th>
+                    <th>Escala</th>
+                </tr>
+                </thead>
+                <tbody>
+                <!-- JS -->
+                </tbody>
+            </table>
+        </section>
+
+        <!-- TAB EVALUACIONES -->
+        <section id="tabEvaluaciones" class="card hidden">
+            <h3>Registrar evaluaciones</h3>
+            <div class="row">
+                <div class="col-2">
+                    <h4>Nueva evaluación</h4>
+                    <label>Clase</label>
+                    <select id="evalClassSelect"></select>
+
+                    <label>Estudiante</label>
+                    <select id="evalStudentSelect"></select>
+
+                    <label>Criterio</label>
+                    <select id="evalCriterionSelect"></select>
+
+                    <label>Fecha</label>
+                    <input id="evalDateInput" type="date" />
+
+                    <div id="numericEvalWrapper">
+                        <label>Valor numérico (0-10)</label>
+                        <input id="evalNumericInput" type="number" min="0" max="10" step="0.1" />
+                    </div>
+
+                    <div id="qualEvalWrapper" class="hidden">
+                        <label>Valor cualitativo</label>
+                        <select id="evalQualitativeSelect"></select>
+                        <input id="evalQualitativeFreeInput" type="text" placeholder="O escribe una apreciación..." />
+                    </div>
+
+                    <label>Comentario</label>
+                    <textarea id="evalCommentInput" placeholder="Observaciones cualitativas"></textarea>
+
+                    <button id="addEvaluationBtn" style="margin-top:0.5rem;">Guardar evaluación</button>
+                </div>
+                <div class="col-2">
+                    <h4>Evaluaciones recientes</h4>
+                    <table id="evaluationsTable">
+                        <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Estudiante</th>
+                            <th>Criterio</th>
+                            <th>Valor</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <!-- JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB VISTA ESTUDIANTE -->
+        <section id="tabVistaEstudiante" class="card hidden">
+            <h3>Vista rápida de un estudiante (como lo ve él/ella)</h3>
+            <div class="row">
+                <div class="col-2">
+                    <label>Seleccionar estudiante</label>
+                    <select id="previewStudentSelect"></select>
+                    <button id="previewStudentBtn" style="margin-top:0.3rem;">Ver vista</button>
+                    <p class="muted">
+                        Esto simula el portal estudiantil para ese estudiante.
+                    </p>
+                </div>
+            </div>
+            <div id="previewStudentContainer" class="hidden">
+                <!-- Se reutiliza la lógica del portal estudiantil -->
+            </div>
+        </section>
+    </section>
+
+    <!-- PORTAL ESTUDIANTIL -->
+    <section id="estudiantePortal" class="hidden">
+        <div class="card">
+            <h2>Portal del estudiante</h2>
+            <p class="muted">
+                Aquí puedes ver cómo estás siendo evaluado/a y tu evolución en el tiempo.
+            </p>
+        </div>
+
+        <section class="card">
+            <h3 id="studentNameHeading"></h3>
+            <p class="muted" id="studentClassInfo"></p>
+
+            <h4>Criterios de evaluación para tu clase</h4>
+            <ul id="studentCriteriaList" style="padding-left:1rem; font-size:0.9rem;"></ul>
+
+            <h4 style="margin-top:1rem;">Resumen actual por criterio</h4>
+            <table id="studentSummaryTable">
+                <thead>
+                <tr>
+                    <th>Criterio</th>
+                    <th>Última evaluación</th>
+                    <th>Fecha</th>
+                    <th>Comentario</th>
+                </tr>
+                </thead>
+                <tbody>
+                <!-- JS -->
+                </tbody>
+            </table>
+        </section>
+
+        <section class="card">
+            <h3>Evolución en el tiempo (promedio numérico)</h3>
+            <p class="muted">
+                Se calcula un promedio de tus evaluaciones numéricas para cada fecha registrada.
+            </p>
+            <canvas id="studentChart" height="140"></canvas>
+        </section>
+
+        <section class="card">
+            <h3>Historial de evaluaciones</h3>
+            <table id="studentHistoryTable">
+                <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Criterio</th>
+                    <th>Valor</th>
+                    <th>Comentario</th>
+                </tr>
+                </thead>
+                <tbody>
+                <!-- JS -->
+                </tbody>
+            </table>
+        </section>
+    </section>
+</main>
+
+<script>
+    // =====================
+    // DATOS EN MEMORIA (PROTOTIPO)
+    // =====================
+
+    const docentes = [
+        { id: "doc1", nombre: "Profe Demo" }
+    ];
+
+    let clases = [
+        // Ejemplo inicial
+        {
+            id: "2-3",
+            nombre: "2° 3°",
+            criterios: [
+                {
+                    id: "c1",
+                    nombre: "Participación",
+                    tipo: "qualitative",
+                    escala: ["Regular", "Bueno", "Excelente"],
+                    paradigma: "Formativo/procesual"
+                },
+                {
+                    id: "c2",
+                    nombre: "Trabajos prácticos",
+                    tipo: "numeric",
+                    escala: [],
+                    paradigma: "Basado en capacidades"
+                }
+            ]
+        }
+    ];
+
+    let estudiantes = [
+        { id: "stu1", nombre: "Ana Pérez", claseId: "2-3" },
+        { id: "stu2", nombre: "Juan López", claseId: "2-3" }
+    ];
+
+    let evaluaciones = [
+        {
+            estudianteId: "stu1",
+            claseId: "2-3",
+            criterioId: "c2",
+            fecha: "2025-05-01",
+            valorNumerico: 8,
+            valorCualitativo: "",
+            comentario: "Buen desempeño en el primer trabajo."
+        },
+        {
+            estudianteId: "stu1",
+            claseId: "2-3",
+            criterioId: "c2",
+            fecha: "2025-05-20",
+            valorNumerico: 9,
+            valorCualitativo: "",
+            comentario: "Entrega a tiempo y completa."
+        },
+        {
+            estudianteId: "stu1",
+            claseId: "2-3",
+            criterioId: "c1",
+            fecha: "2025-05-18",
+            valorNumerico: null,
+            valorCualitativo: "Bueno",
+            comentario: "Participa cuando se le pregunta."
+        }
+    ];
+
+    // Estado de sesión
+    let currentUser = null; // {role: 'docente'|'estudiante', id: '...'}
+    let studentChartInstance = null;
+
+    // =====================
+    // UTILIDADES
+    // =====================
+
+    function $(id) {
+        return document.getElementById(id);
+    }
+
+    function formatDate(dateStr) {
+        if (!dateStr) return "";
+        const d = new Date(dateStr);
+        if (isNaN(d)) return dateStr;
+        return d.toLocaleDateString("es-AR");
+    }
+
+    function getClaseById(id) {
+        return clases.find(c => c.id === id);
+    }
+
+    function getStudentById(id) {
+        return estudiantes.find(s => s.id === id);
+    }
+
+    function getCriterionById(claseId, criterioId) {
+        const clase = getClaseById(claseId);
+        if (!clase) return null;
+        return clase.criterios.find(c => c.id === criterioId);
+    }
+
+    function generateId(prefix) {
+        return prefix + Math.random().toString(36).substring(2, 8);
+    }
+
+    // =====================
+    // LOGIN
+    // =====================
+
+    const roleSelect = $("roleSelect");
+    const docLoginFields = $("docLoginFields");
+    const estLoginFields = $("estLoginFields");
+
+    roleSelect.addEventListener("change", () => {
+        if (roleSelect.value === "docente") {
+            docLoginFields.classList.remove("hidden");
+            estLoginFields.classList.add("hidden");
+        } else {
+            docLoginFields.classList.add("hidden");
+            estLoginFields.classList.remove("hidden");
+        }
+    });
+
+    $("loginButton").addEventListener("click", () => {
+        const role = roleSelect.value;
+        if (role === "docente") {
+            const id = $("docenteIdInput").value.trim();
+            const doc = docentes.find(d => d.id === id);
+            if (!doc) {
+                alert("Docente no encontrado (usa doc1 como ejemplo).");
+                return;
+            }
+            currentUser = { role: "docente", id: doc.id };
+            enterDocenteDashboard(doc);
+        } else {
+            const id = $("estudianteIdInput").value.trim();
+            const stu = getStudentById(id);
+            if (!stu) {
+                alert("Estudiante no encontrado. Asegúrate de que el docente lo haya creado y usa su ID.");
+                return;
+            }
+            currentUser = { role: "estudiante", id: stu.id };
+            enterEstudiantePortal(stu);
+        }
+    });
+
+    function updateHeaderUserInfo() {
+        const el = $("userInfoHeader");
+        if (!currentUser) {
+            el.innerHTML = "";
+            return;
+        }
+        if (currentUser.role === "docente") {
+            const doc = docentes.find(d => d.id === currentUser.id);
+            el.innerHTML = `<span class="badge badge-docente">DOCENTE</span> ${doc ? doc.nombre : ""}`;
+        } else {
+            const stu = getStudentById(currentUser.id);
+            el.innerHTML = `<span class="badge badge-estudiante">ESTUDIANTE</span> ${stu ? stu.nombre : ""}`;
+        }
+    }
+
+    function hideAllMainSections() {
+        $("loginSection").classList.add("hidden");
+        $("docenteDashboard").classList.add("hidden");
+        $("estudiantePortal").classList.add("hidden");
+    }
+
+    function enterDocenteDashboard(doc) {
+        hideAllMainSections();
+        $("docenteDashboard").classList.remove("hidden");
+        updateHeaderUserInfo();
+        refreshAllDocenteViews();
+    }
+
+    function enterEstudiantePortal(stu) {
+        hideAllMainSections();
+        $("estudiantePortal").classList.remove("hidden");
+        updateHeaderUserInfo();
+        renderStudentPortal(stu.id);
+    }
+
+    // =====================
+    // TABS DOCENTE
+    // =====================
+
+    const tabButtons = document.querySelectorAll(".tab-btn");
+    tabButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+            const target = btn.dataset.tab;
+            document.querySelectorAll("#docenteDashboard section.card").forEach(sec => {
+                if (sec.id && sec.id.startsWith("tab")) sec.classList.add("hidden");
+            });
+            document.getElementById(target).classList.remove("hidden");
+            tabButtons.forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+        });
+    });
+
+    // =====================
+    // DOCENTE: ESTUDIANTES
+    // =====================
+
+    $("addStudentBtn").addEventListener("click", () => {
+        const name = $("newStudentName").value.trim();
+        const id = $("newStudentId").value.trim();
+        const claseNombre = $("newStudentClass").value.trim();
+
+        if (!name || !id || !claseNombre) {
+            alert("Completa nombre, ID y clase.");
+            return;
+        }
+        if (getStudentById(id)) {
+            alert("Ya existe un estudiante con ese ID.");
+            return;
+        }
+
+        // buscar o crear clase
+        let clase = clases.find(c => c.nombre === claseNombre);
+        if (!clase) {
+            const newId = generateId("cl");
+            clase = { id: newId, nombre: claseNombre, criterios: [] };
+            clases.push(clase);
+        }
+
+        estudiantes.push({
+            id,
+            nombre: name,
+            claseId: clase.id
+        });
+
+        $("newStudentName").value = "";
+        $("newStudentId").value = "";
+        $("newStudentClass").value = "";
+
+        refreshStudentsTable();
+        refreshClassSelects();
+        alert("Estudiante agregado.");
+    });
+
+    function refreshStudentsTable() {
+        const tbody = $("studentsTable").querySelector("tbody");
+        tbody.innerHTML = "";
+
+        estudiantes.forEach(st => {
+            const clase = getClaseById(st.claseId);
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>${st.nombre}</td>
+                <td><span class="pill">${st.id}</span></td>
+                <td>${clase ? clase.nombre : "-"}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        // llenar preview select
+        const prevSel = $("previewStudentSelect");
+        prevSel.innerHTML = "";
+        estudiantes.forEach(st => {
+            const option = document.createElement("option");
+            option.value = st.id;
+            const clase = getClaseById(st.claseId);
+            option.textContent = `${st.nombre} (${clase ? clase.nombre : ""})`;
+            prevSel.appendChild(option);
+        });
+    }
+
+    // =====================
+    // DOCENTE: CLASES Y CRITERIOS
+    // =====================
+
+    $("addClassBtn").addEventListener("click", () => {
+        const nombre = $("classNameInput").value.trim();
+        if (!nombre) {
+            alert("Escribe el nombre de la clase.");
+            return;
+        }
+        let clase = clases.find(c => c.nombre === nombre);
+        if (!clase) {
+            const id = generateId("cl");
+            clase = { id, nombre, criterios: [] };
+            clases.push(clase);
+        }
+        $("selectedClassLabel").textContent = `Clase actual: ${clase.nombre}`;
+        refreshClassSelects();
+        refreshCriteriaTable();
+        alert("Clase seleccionada/creada.");
+    });
+
+    $("addCriterionBtn").addEventListener("click", () => {
+        const claseId = $("classSelectCriteria").value;
+        const nombre = $("criterionNameInput").value.trim();
+        const tipo = $("criterionTypeInput").value;
+        const escalaRaw = $("criterionScaleInput").value.trim();
+        const paradigma = $("criterionParadigmInput").value;
+
+        if (!claseId || !nombre) {
+            alert("Selecciona una clase y escribe el nombre del criterio.");
+            return;
+        }
+
+        const clase = getClaseById(claseId);
+        if (!clase) return;
+
+        const exists = clase.criterios.find(c => c.nombre.toLowerCase() === nombre.toLowerCase());
+        if (exists) {
+            alert("Ya existe un criterio con ese nombre en esta clase.");
+            return;
+        }
+
+        const escala = escalaRaw
+            ? escalaRaw.split(",").map(s => s.trim()).filter(Boolean)
+            : [];
+
+        clase.criterios.push({
+            id: generateId("cr"),
+            nombre,
+            tipo,
+            escala,
+            paradigma
+        });
+
+        $("criterionNameInput").value = "";
+        $("criterionScaleInput").value = "";
+        $("criterionParadigmInput").value = "";
+
+        refreshCriteriaTable();
+        refreshEvalCriteriaSelect();
+        alert("Criterio agregado.");
+    });
+
+    function refreshClassSelects() {
+        const classSelectCriteria = $("classSelectCriteria");
+        const evalClassSelect = $("evalClassSelect");
+
+        classSelectCriteria.innerHTML = "";
+        evalClassSelect.innerHTML = "";
+
+        clases.forEach(cl => {
+            const opt1 = document.createElement("option");
+            opt1.value = cl.id;
+            opt1.textContent = cl.nombre;
+            classSelectCriteria.appendChild(opt1);
+
+            const opt2 = document.createElement("option");
+            opt2.value = cl.id;
+            opt2.textContent = cl.nombre;
+            evalClassSelect.appendChild(opt2);
+        });
+
+        refreshEvalStudentsSelect();
+        refreshEvalCriteriaSelect();
+    }
+
+    function refreshCriteriaTable() {
+        const tbody = $("criteriaTable").querySelector("tbody");
+        tbody.innerHTML = "";
+
+        clases.forEach(cl => {
+            cl.criterios.forEach(cr => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${cl.nombre}</td>
+                    <td>${cr.nombre}</td>
+                    <td>${cr.paradigma || "-"}</td>
+                    <td>${cr.tipo === "numeric" ? "Numérica" : "Cualitativa"}</td>
+                    <td>${cr.escala && cr.escala.length ? cr.escala.join(", ") : "-"}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        });
+    }
+
+    // =====================
+    // DOCENTE: EVALUACIONES
+    // =====================
+
+    $("evalClassSelect").addEventListener("change", () => {
+        refreshEvalStudentsSelect();
+        refreshEvalCriteriaSelect();
+    });
+
+    $("evalCriterionSelect").addEventListener("change", () => {
+        updateEvalInputType();
+    });
+
+    function refreshEvalStudentsSelect() {
+        const claseId = $("evalClassSelect").value;
+        const sel = $("evalStudentSelect");
+        sel.innerHTML = "";
+        if (!claseId) return;
+
+        estudiantes
+            .filter(s => s.claseId === claseId)
+            .forEach(st => {
+                const opt = document.createElement("option");
+                opt.value = st.id;
+                opt.textContent = st.nombre;
+                sel.appendChild(opt);
+            });
+    }
+
+    function refreshEvalCriteriaSelect() {
+        const claseId = $("evalClassSelect").value;
+        const sel = $("evalCriterionSelect");
+        sel.innerHTML = "";
+        if (!claseId) return;
+        const clase = getClaseById(claseId);
+        if (!clase) return;
+
+        clase.criterios.forEach(cr => {
+            const opt = document.createElement("option");
+            opt.value = cr.id;
+            opt.textContent = `${cr.nombre} (${cr.tipo === "numeric" ? "Num" : "Cual"})`;
+            sel.appendChild(opt);
+        });
+        updateEvalInputType();
+    }
+
+    function updateEvalInputType() {
+        const claseId = $("evalClassSelect").value;
+        const criterioId = $("evalCriterionSelect").value;
+        const criterio = getCriterionById(claseId, criterioId);
+
+        const numericWrapper = $("numericEvalWrapper");
+        const qualWrapper = $("qualEvalWrapper");
+        const qualSelect = $("evalQualitativeSelect");
+        const qualFree = $("evalQualitativeFreeInput");
+
+        if (!criterio) {
+            numericWrapper.classList.add("hidden");
+            qualWrapper.classList.add("hidden");
+            return;
+        }
+
+        if (criterio.tipo === "numeric") {
+            numericWrapper.classList.remove("hidden");
+            qualWrapper.classList.add("hidden");
+        } else {
+            numericWrapper.classList.add("hidden");
+            qualWrapper.classList.remove("hidden");
+            qualSelect.innerHTML = "";
+
+            if (criterio.escala && criterio.escala.length) {
+                criterio.escala.forEach(v => {
+                    const opt = document.createElement("option");
+                    opt.value = v;
+                    opt.textContent = v;
+                    qualSelect.appendChild(opt);
+                });
+                qualSelect.disabled = false;
+                qualFree.placeholder = "O escribe una apreciación...";
+            } else {
+                const opt = document.createElement("option");
+                opt.value = "";
+                opt.textContent = "Sin escala definida";
+                qualSelect.appendChild(opt);
+                qualSelect.disabled = true;
+                qualFree.placeholder = "Escribe una apreciación (Ej: Muy comprometido)";
+            }
+        }
+    }
+
+    $("addEvaluationBtn").addEventListener("click", () => {
+        const claseId = $("evalClassSelect").value;
+        const estudianteId = $("evalStudentSelect").value;
+        const criterioId = $("evalCriterionSelect").value;
+        const fecha = $("evalDateInput").value || new Date().toISOString().substring(0, 10);
+        const comentario = $("evalCommentInput").value.trim();
+
+        const criterio = getCriterionById(claseId, criterioId);
+        if (!criterio || !estudianteId) {
+            alert("Completa clase, estudiante y criterio.");
+            return;
+        }
+
+        let valorNumerico = null;
+        let valorCualitativo = "";
+
+        if (criterio.tipo === "numeric") {
+            const v = $("evalNumericInput").value;
+            if (v === "") {
+                alert("Ingresa un valor numérico.");
+                return;
+            }
+            valorNumerico = parseFloat(v);
+        } else {
+            const sel = $("evalQualitativeSelect");
+            const free = $("evalQualitativeFreeInput").value.trim();
+            valorCualitativo = free || (sel.disabled ? "" : sel.value);
+            if (!valorCualitativo) {
+                alert("Escribe o selecciona un valor cualitativo.");
+                return;
+            }
+        }
+
+        evaluaciones.push({
+            estudianteId,
+            claseId,
+            criterioId,
+            fecha,
+            valorNumerico,
+            valorCualitativo,
+            comentario
+        });
+
+        // limpiar inputs básicos
+        $("evalCommentInput").value = "";
+        $("evalNumericInput").value = "";
+        $("evalQualitativeFreeInput").value = "";
+
+        refreshEvaluationsTable();
+        alert("Evaluación registrada.");
+    });
+
+    function refreshEvaluationsTable() {
+        const tbody = $("evaluationsTable").querySelector("tbody");
+        tbody.innerHTML = "";
+        const last = [...evaluaciones].slice(-15).reverse(); // últimas 15
+
+        last.forEach(ev => {
+            const stu = getStudentById(ev.estudianteId);
+            const crit = getCriterionById(ev.claseId, ev.criterioId);
+            const tr = document.createElement("tr");
+            const val =
+                crit && crit.tipo === "numeric"
+                    ? ev.valorNumerico
+                    : ev.valorCualitativo;
+            tr.innerHTML = `
+                <td>${formatDate(ev.fecha)}</td>
+                <td>${stu ? stu.nombre : "-"}</td>
+                <td>${crit ? crit.nombre : "-"}</td>
+                <td>${val}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // =====================
+    // VISTA RÁPIDA ESTUDIANTE DESDE DOCENTE
+    // =====================
+
+    $("previewStudentBtn").addEventListener("click", () => {
+        const id = $("previewStudentSelect").value;
+        const cont = $("previewStudentContainer");
+        cont.classList.remove("hidden");
+        cont.innerHTML = "";
+        const tempDiv = document.createElement("div");
+        cont.appendChild(tempDiv);
+
+        // Reutilizamos la función de render del portal (sin cambiar sesión)
+        renderStudentPortal(id, tempDiv);
+    });
+
+    // =====================
+    // PORTAL ESTUDIANTIL
+    // =====================
+
+    function renderStudentPortal(studentId, containerOverride) {
+        const student = getStudentById(studentId);
+        if (!student) return;
+        const clase = getClaseById(student.claseId);
+
+        const root = containerOverride || document;
+        const nameHeading = root.querySelector("#studentNameHeading");
+        const classInfo = root.querySelector("#studentClassInfo");
+        const criteriaList = root.querySelector("#studentCriteriaList");
+        const summaryTableBody = root.querySelector("#studentSummaryTable tbody");
+        const historyTableBody = root.querySelector("#studentHistoryTable tbody");
+        const chartCanvas = root.querySelector("#studentChart");
+
+        if (nameHeading) nameHeading.textContent = student.nombre;
+        if (classInfo) classInfo.textContent = `Clase: ${clase ? clase.nombre : "-"}`;
+
+        if (criteriaList) {
+            criteriaList.innerHTML = "";
+            if (clase && clase.criterios.length) {
+                clase.criterios.forEach(cr => {
+                    const li = document.createElement("li");
+                    li.innerHTML = `
+                        <strong>${cr.nombre}</strong> 
+                        <span class="muted">
+                            (${cr.tipo === "numeric" ? "Evaluación numérica" : "Evaluación cualitativa"})
+                        </span>
+                    `;
+                    criteriaList.appendChild(li);
+                });
+            } else {
+                const li = document.createElement("li");
+                li.textContent = "No hay criterios definidos aún para tu clase.";
+                criteriaList.appendChild(li);
+            }
+        }
+
+        const evsStudent = evaluaciones.filter(ev => ev.estudianteId === student.id);
+
+        // Resumen último valor por criterio
+        if (summaryTableBody) {
+            summaryTableBody.innerHTML = "";
+            if (clase) {
+                clase.criterios.forEach(cr => {
+                    const evsCrit = evsStudent
+                        .filter(ev => ev.criterioId === cr.id)
+                        .sort((a, b) => (a.fecha > b.fecha ? 1 : -1));
+                    const last = evsCrit[evsCrit.length - 1];
+                    const tr = document.createElement("tr");
+                    if (last) {
+                        const val = cr.tipo === "numeric" ? last.valorNumerico : last.valorCualitativo;
+                        tr.innerHTML = `
+                            <td>${cr.nombre}</td>
+                            <td>${val}</td>
+                            <td>${formatDate(last.fecha)}</td>
+                            <td>${last.comentario || "-"}</td>
+                        `;
+                    } else {
+                        tr.innerHTML = `
+                            <td>${cr.nombre}</td>
+                            <td class="muted" colspan="3">Sin evaluaciones aún</td>
+                        `;
+                    }
+                    summaryTableBody.appendChild(tr);
+                });
+            }
+        }
+
+        // Historial completo
+        if (historyTableBody) {
+            historyTableBody.innerHTML = "";
+            const sorted = [...evsStudent].sort((a, b) => (a.fecha > b.fecha ? 1 : -1));
+            sorted.forEach(ev => {
+                const crit = getCriterionById(ev.claseId, ev.criterioId);
+                const val = crit && crit.tipo === "numeric" ? ev.valorNumerico : ev.valorCualitativo;
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${formatDate(ev.fecha)}</td>
+                    <td>${crit ? crit.nombre : "-"}</td>
+                    <td>${val}</td>
+                    <td>${ev.comentario || "-"}</td>
+                `;
+                historyTableBody.appendChild(tr);
+            });
+        }
+
+        // Gráfico de evolución: promedio numérico por fecha
+        if (chartCanvas) {
+            const numericEvs = evsStudent.filter(ev => ev.valorNumerico !== null && ev.valorNumerico !== undefined);
+            const byDate = {};
+            numericEvs.forEach(ev => {
+                if (!byDate[ev.fecha]) byDate[ev.fecha] = [];
+                byDate[ev.fecha].push(ev.valorNumerico);
+            });
+            const labels = Object.keys(byDate).sort();
+            const data = labels.map(d => {
+                const arr = byDate[d];
+                return arr.reduce((a, b) => a + b, 0) / arr.length;
+            });
+
+            if (studentChartInstance && !containerOverride) {
+                studentChartInstance.destroy();
+            }
+            if (!labels.length) {
+                const ctx = chartCanvas.getContext("2d");
+                ctx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
+            } else {
+                const ctx = chartCanvas.getContext("2d");
+                const config = {
+                    type: "line",
+                    data: {
+                        labels: labels.map(d => formatDate(d)),
+                        datasets: [{
+                            label: "Promedio numérico",
+                            data,
+                            tension: 0.3,
+                            fill: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: true
+                            }
+                        },
+                        scales: {
+                            y: {
+                                suggestedMin: 0,
+                                suggestedMax: 10
+                            }
+                        }
+                    }
+                };
+                if (containerOverride) {
+                    new Chart(ctx, config);
+                } else {
+                    studentChartInstance = new Chart(ctx, config);
+                }
+            }
+        }
+    }
+
+    // =====================
+    // REFRESH GENERAL DOCENTE
+    // =====================
+
+    function refreshAllDocenteViews() {
+        refreshStudentsTable();
+        refreshClassSelects();
+        refreshCriteriaTable();
+        refreshEvaluationsTable();
+    }
+
+    // =====================
+    // INICIALIZACIÓN
+    // =====================
+
+    $("evalDateInput").value = new Date().toISOString().substring(0, 10);
+    refreshAllDocenteViews();
+    updateHeaderUserInfo();
+</script>
+
+</body>
+</html>
